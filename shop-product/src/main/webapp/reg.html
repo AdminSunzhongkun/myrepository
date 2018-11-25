@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册页面</title>
+    <link href="/js/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/js/bootstrap-datatimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet"/>
+    <link href="/js/bootstrap-validator/css/bootstrapValidator.min.css" rel="stylesheet">
+</head>
+<body>
+
+<form class="form-horizontal">
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">用户名</label>
+        <div class="col-sm-4">
+            <input  class="form-control" name="userName" onblur="checkUser(this)">
+        </div>
+    </div>
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">密码</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control"  name="password">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">邮箱</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" name="email">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">生日</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" date="datetimepicker" name="birthday">
+        </div>
+    </div>
+
+
+    <div class="form-group">
+
+        <label class="col-sm-2 control-label">手机号</label>
+        <div class="col-sm-4">
+            <div class="input-group">
+                <input type="text" id="mobil" name="phone" class="form-control" >
+                <span class="input-group-btn">
+            <button class="btn btn-primary"  onclick="getmsg(this);" type="button">获取验证码</button>
+          </span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">验证码</label>
+        <div class="col-sm-4">
+            <input  class="form-control"  name="phonecode">
+        </div>
+    </div>
+
+
+    <div class="form-group" id="classDIv">
+
+        <label  class="col-sm-2 control-label">地区</label>
+
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="button" class="btn btn-success"  id="regbutton" onclick="reguser();">注册</button>
+            <button type="reset" class="btn btn-success">重置</button>
+        </div>
+    </div>
+</form>
+
+
+
+<script src="/js/jquery-1.12.4.js"></script>
+<script src="/js/bootstrap/js/bootstrap.min.js"></script>
+<script src="/js/bootstrap-datatimepicker/bootstrap-datetimepicker.min.js"></script>
+<script src="/js/bootstrap-datatimepicker/bootstrap-datetimepicker.zh-CN.js"></script>
+<script type="text/javascript" src="/js/bootstrap-validator/js/bootstrapValidator.min.js"></script>
+<script type="text/javascript" src="/js/bootstrap-validator/js/zh_CN.js"></script>
+</body>
+
+<script>
+
+
+    $("form").bootstrapValidator({
+        live: 'enabled',
+        message: '通用的验证失败消息',//好像从来没出现过
+        feedbackIcons: {//根据验证结果显示的各种图标
+            valid: 'glyphicon glyphicon-ok',
+            invalid: 'glyphicon glyphicon-remove',
+            validating: 'glyphicon glyphicon-refresh'
+        },
+        fields: {
+            userName: {
+                validators: {
+                    notEmpty: {//检测非空,radio也可用
+                        message: '不能为空'
+                    },
+                    stringLength: {//检测长度
+                        min: 3,
+                        max: 20,
+                        message: '长度必须在3-20之间'
+                    },
+                    regexp: {//正则验证
+                        regexp: /^[a-zA-Z0-9_\.]+$/,
+                        message: '所输入的字符不符要求'
+                    }
+                }
+            },
+            password: {
+                validators: {
+                    notEmpty: {//检测非空,radio也可用
+                        message: '不能为空'
+                    },
+                    stringLength: {//检测长度
+                        min: 4,
+                        max: 20,
+                        message: '长度必须在4-20之间'
+                    },
+                    regexp: {//正则验证
+                        regexp: /^[a-zA-Z0-9_\.]+$/,
+                        message: '所输入的字符不符要求'
+                    }
+                }
+            },
+            email: {
+                validators: {
+                    notEmpty: {//检测非空,radio也可用
+                        message: '文本框必须输入'
+                    },
+                }
+            },
+            birthday: {
+                validators: {
+                    notEmpty: {//检测非空,radio也可用
+                        message: '不能为空'
+                    },
+
+                }
+            },
+            phone: {
+                validators: {
+                    notEmpty: {//检测非空,radio也可用
+                        message: '手机号必须验证'
+                    },
+                    stringLength: {//检测长度
+                        min: 11,
+                        max: 11,
+                        message: '长度必须是11位'
+                    },
+                }
+            },
+            phonecode: {
+                validators: {
+                    notEmpty: {//检测非空,radio也可用
+                        message: '手机号必须验证'
+                    },
+                    stringLength: {//检测长度
+                        min: 4,
+                        max: 4,
+                        message: '长度必须是4位'
+                    },
+                }
+            }
+        }
+    });
+
+
+    initClass(0);
+    function initClass(id,obj) {
+        $.ajax({
+            type:"post",
+            url:"http://192.168.0.146:8080/area/queryAreaList?id="+id,
+            success:function (result) {
+                if (result.code == 0){
+                    //先清除
+                    //如果obj存在不为空
+                    if(obj){
+                        //先清空
+                        $(obj).parent().nextAll().remove();
+                        //给隐藏域赋值
+                        var v_index = obj.selectedIndex;
+                        $(obj).prev().val(obj.options[v_index].text);
+                    }
+                    var v_classList = result.data;
+                    if (v_classList.length == 0){
+                        return;
+                    }
+                    var result = '<div class="col-sm-1" style="padding: 0px;margin-left: 15px"><select name="categorySelect"  CLASS="form-control" onchange="initClass(this.value,this)"><option value="-1">-请选择-</option> ';
+                    for (var i = 0; i < v_classList.length; i++){
+                        result+=" <option value='"+v_classList[i].id+"'>"+v_classList[i].name+"</option>"
+                    }
+                    result+= "</select></div>";
+                    $("#classDIv").append(result);
+                }
+            }
+        })
+
+    }
+
+
+
+    function checkUser(obj) {
+
+        $.ajax({
+            url:"http://192.168.0.146:8081/user/checkUser",
+            data:{"userName":obj.value},
+            type:"get",
+            success:function (res) {
+
+                if(res.data==null){
+                    alert("该用户名可以注册")
+                    $("#regbutton").removeAttr("disabled")
+                }else {
+                    alert("该用户名已存在")
+                    $("#regbutton").attr("disabled","disabled")
+                }
+            }
+        })
+
+    }
+
+
+    
+    function reguser() {
+
+        $.ajax({
+            url:"http://192.168.0.146:8085/user/regUser",
+            type:"post",
+            data:$("form").serialize(),
+            success:function (res) {
+                if(res.code==1000){
+                    alert(res.msg);
+                }else {
+                    alert(res.msg);
+                }
+            }
+        })
+    }
+    
+    
+    
+    timepike();
+    var countDown=60;
+    function getmsg(obj) {
+        sendmsg(obj);
+        var v_codemsg=$("#mobil").val();
+        $.ajax({
+            url:"http://localhost:8081/user/sendMsg?mobil="+v_codemsg,
+
+            type:"get",
+            success:function (res) {
+
+            }
+        })
+
+    }
+
+
+    function sendmsg(obj) {
+
+        if (countDown == 0) {
+            obj.removeAttribute("disabled");
+            $(obj).html("获取验证码");
+            countDown = 60;
+            return;
+        } else {
+            obj.setAttribute("disabled", true);
+            $(obj).html("重新发送" + countDown + "");
+            countDown--;
+        }
+        setTimeout(function() {
+            getmsg(obj)
+        },1000);
+
+    }
+
+
+
+    function timepike() {
+        $('[date="datetimepicker"]').datetimepicker({
+            format: 'yyyy-mm-dd', //日期格式，默认值: 'mm/dd/yyyy'
+            weekStart: 1,            //设置一周从哪一天开始，默认值0（星期日）到6（星期六）
+            startDate: '1900-01-01', //Date. 默认值：起始时间
+            endDate: '3000-01-01',   //截至时间
+            todayHighlight: true,         //今天高亮
+            todayBin: 'linked',     //当天日期将会被选中
+            minView: 'month',      //日期时间选择器所能够提供的最精确的时间选择视图,默认值：0, 'hour'
+            maxView: 4,            //日期时间选择器最高能展示的选择范围视图 默认值：4, 'decade'
+            startView: 2,            //日期时间选择器打开之后首先显示的视图。可接受的值：2(month)
+            language: 'zh-CN',      //设置插件的语言
+            forceParse: 1,            //当选择器关闭的时候，是否强制解析输入框中的值
+            showMeridian: 1,            //该选项将启用每日和小时视图的子视图
+            autoclose: true          //当选择一个日期之后是否立即关闭此日期时间选择器
+        });
+    }
+
+
+</script>
+
+
+</html>
